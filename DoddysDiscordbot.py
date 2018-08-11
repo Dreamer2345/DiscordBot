@@ -2,7 +2,8 @@ import asyncio
 import urllib.request
 import discord
 from discord.ext import commands
-
+import requests
+import json
 bot = discord.Client()
 
 if not discord.opus.is_loaded():
@@ -57,6 +58,27 @@ class VoiceState:
             await self.bot.send_message(self.current.channel, 'Now playing ' + str(self.current))
             self.current.player.start()
             await self.play_next_song.wait()
+
+class Dirty:
+    """NSFW related commands"""
+    def __init__(self,bot):
+        self.bot = bot
+    @commands.command(pass_context = True)
+    async def e621(self,ctx,params):
+        """Gets a NSFW image from e621 usage =e621 <tags>"""
+
+        x = ctx.message.channel.type
+        print(x)
+        e6url = "https://e621.net/post/index.json?tags=order:random+"+params
+        e6ext = {"user-agent":"Discord bot/v0.1 {by Dreamer2345 on Github}"}
+        r = requests.get(e6url, headers = e6ext)
+        pjson = json.loads(r.text)
+        idf = pjson[0]
+        idur = idf['file_url'] 
+        await self.bot.say(idur)
+
+        
+
 
 class Music:
     """Voice related commands.
@@ -235,7 +257,7 @@ class Music:
     
 bot = commands.Bot(command_prefix='=', description='Music and greeting bot')
 bot.add_cog(Music(bot))
-
+bot.add_cog(Dirty(bot))
 
 @bot.event
 async def on_member_join(member):
@@ -256,6 +278,7 @@ async def on_ready():
     print('Logged in as')
     print(bot.user.name)
     print(bot.user.id)
+    print(discord.__version__)
     print('------')
     await bot.change_presence(game=discord.Game(name='Use =Help for commands'))
 
